@@ -5,7 +5,9 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity top is
     Port (
         clk : in STD_LOGIC;
-        rst : in STD_LOGIC;
+        rst : in STD_LOGIC; --Will be a switch?
+        p1  : in STD_LOGIC_VECTOR(1 downto 0);
+        p2  : in STD_LOGIC_VECTOR (1 downto 0);
         vga_hsync : out STD_LOGIC;
         vga_vsync : out STD_LOGIC;
         vga_red   : out STD_LOGIC_VECTOR(3 downto 0);

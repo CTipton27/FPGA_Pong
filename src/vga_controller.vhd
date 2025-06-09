@@ -16,7 +16,7 @@ entity vga_controller is
 end vga_controller;
 
 architecture Behavioral of vga_controller is
-
+--Students can go to "http://www.tinyvga.com/vga-timing/640x480@60Hz" to see timing signals, or they can be provided.
     constant H_Visible : integer := 640;
     constant H_FPorch  : integer := 16;
     constant H_Sync    : integer := 96;
@@ -33,30 +33,35 @@ architecture Behavioral of vga_controller is
     signal V_Count : unsigned (9 downto 0) := (others => '0');
 
 begin
-    process(clk, rst)
+    process(clk,rst) is
     begin
-        if rst = '1' then
-            H_Count <= (others => '0');
-            H_Count <= (others => '0');
+        if rst = '1' then --Active High Reset
+            pixel_x <= (others => '0');
+            pixel_y <= (others => '0');
+            video_on <= '0';
         elsif rising_edge(clk) then
-            if unsigned(H_Count) = H_Total - 1 then
-                H_Count <= (others => '0');
-                if unsigned(V_count) = V_Total - 1 then
+            if H_Count = H_Total - 1 then --'-1' since we are incrementing from '0'
+                H_Count <= (others => '0') ;
+                if V_Count = V_Total - 1 then
                     V_Count <= (others => '0');
                 else
-                    V_Count <= V_count + 1;
+                    V_Count <= V_Count +1;
                 end if;
             else
                 H_Count <= H_Count + 1;
             end if;
-        end if;
+        end if;        
     end process;
     
-    hsync <= '0' when (H_Count >= (H_Visible + H_FPorch) and H_Count < (H_Visible + H_FPorch + H_Sync)) else '1';
-    vsync <= '0' when (V_Count >= (V_Visible + V_FPorch) and V_Count < (V_Visible + V_FPorch + V_Sync)) else '1';
+    --Active Low, treated as if visible was at '0' even though technically the back porch should be first. can be changed.
+    --The reason we treat visible as '0' is mainly because that segregates the vectors into two clean sections, on and off,
+    --Which allows for much nicer video_on logic, without compromising other logic.
+    hsync <= '0' when ((H_Count >= H_Visible + H_FPorch) and (H_Count < H_Visible + H_FPorch + H_Sync)) else '1';
+    vsync <= '0' when ((V_Count >= V_Visible + V_FPorch) and (V_Count < V_Visible + V_FPorch + V_Sync)) else '1';
     
     video_on <= '1' when (H_Count < H_Visible and V_Count < V_Visible) else '0';
     
     pixel_x <= std_logic_vector(H_Count);
     pixel_y <= std_logic_vector(V_Count);
+        
 end Behavioral;
