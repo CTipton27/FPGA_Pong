@@ -10,6 +10,7 @@ entity vga_controller is
         hsync : out STD_LOGIC;
         vsync : out STD_LOGIC;
         video_on : out STD_LOGIC;
+        frame : out STD_LOGIC;
         pixel_x : out STD_LOGIC_VECTOR (9 downto 0);
         pixel_y : out STD_LOGIC_VECTOR (9 downto 0)
         );
@@ -60,6 +61,7 @@ begin
     vsync <= '0' when ((V_Count >= V_Visible + V_FPorch) and (V_Count < V_Visible + V_FPorch + V_Sync)) else '1';
     
     video_on <= '1' when (H_Count < H_Visible and V_Count < V_Visible) else '0';
+    frame    <= '1' when (H_Count = 0 and V_Count = 0) else '0';
     
     pixel_x <= std_logic_vector(H_Count);
     pixel_y <= std_logic_vector(V_Count);
