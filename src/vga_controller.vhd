@@ -37,9 +37,8 @@ begin
     process(clk,rst) is
     begin
         if rst = '1' then --Active High Reset
-            pixel_x <= (others => '0');
-            pixel_y <= (others => '0');
-            video_on <= '0';
+            H_Count <= (others => '0');
+            V_Count <= (others => '0');
         elsif rising_edge(clk) then
             if H_Count = H_Total - 1 then --'-1' since we are incrementing from '0'
                 H_Count <= (others => '0') ;
@@ -61,7 +60,7 @@ begin
     vsync <= '0' when ((V_Count >= V_Visible + V_FPorch) and (V_Count < V_Visible + V_FPorch + V_Sync)) else '1';
     
     video_on <= '1' when (H_Count < H_Visible and V_Count < V_Visible) else '0';
-    frame    <= '1' when (H_Count = 0 and V_Count = 0) else '0';
+    frame    <= '1' when (H_Count = H_Visible and V_Count = V_Visible) else '0';
     
     pixel_x <= std_logic_vector(H_Count);
     pixel_y <= std_logic_vector(V_Count);

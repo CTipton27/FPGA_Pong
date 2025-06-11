@@ -20,7 +20,7 @@ begin
 	   if rst = '1' then
 	       counter <= "00";
 	   elsif rising_edge(clk) then
-	       if counter = 2 then
+	       if counter = 3 then
 	           counter <= "00";
     	   else
 	          counter <= counter + 1;

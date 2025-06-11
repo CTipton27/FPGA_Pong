@@ -25,18 +25,20 @@ end ball;
 
 architecture Behavioral of ball is
 constant paddle_length : integer := 64;
-constant ball_height   : integer := 32; --slightly smaller than the actual ball to acct. for curvature.
+constant ball_height   : integer := 32;
 constant ball_width    : integer := 32;
 constant left_border   : integer := 19;
 constant right_border  : integer := 599;
 constant top_border    : integer := 9;
 constant bottom_border : integer := 469;
+constant ball_radius   : integer := ball_height/2;
+constant ball_rsquared : integer := ball_radius**2;
 
 signal ball_x : unsigned (9 downto 0) := (others => '0');
 signal ball_y : unsigned (9 downto 0) := (others => '0');
-signal speed : unsigned(2 downto 0) := "001";  -- start at 1 pixel/frame
-signal dx    : STD_LOGIC := '1';   -- X direction (1 for right)
-signal dy    : STD_LOGIC := '1';   -- Y direction (1 for up)
+signal speed  : unsigned(2 downto 0)  := "001";  -- start at 1 pixel/frame
+signal dx     : STD_LOGIC             := '1';   -- X direction (1 for right)
+signal dy     : STD_LOGIC             := '1';   -- Y direction (1 for up)
 
 begin
     process(frame) is
@@ -44,7 +46,7 @@ begin
         if (rising_edge(frame)) then --Checks for collisions
             case dx is
                 when '0' => -- Ball is moving left, check left border and P1 paddle
-                    if (ball_x <= to_unsigned(left_border, ball_x'length)) then -- Hit left wall
+                    if (ball_x-(ball_width/2) <= to_unsigned(left_border, ball_x'length)) then -- Hit left wall
                         -- Check for collision with Player 1 paddle
                         if (ball_y + to_unsigned(ball_height, ball_y'length) >= unsigned(p1y)) and
                            (ball_y <= unsigned(p1y) + to_unsigned(paddle_length, p1y'length)) then
@@ -58,7 +60,7 @@ begin
                         end if;
                     end if;
                 when '1' => -- Ball is moving right, check right border and P2 paddle
-                    if (ball_x + to_unsigned(ball_width, ball_x'length) >= to_unsigned(right_border, ball_x'length)) then -- Hit right wall
+                    if (ball_x+(ball_width/2)-1 >= to_unsigned(right_border, ball_x'length)) then -- Hit right wall
                         -- Check for collision with Player 2 paddle
                         if (ball_y + to_unsigned(ball_height, ball_y'length) >= unsigned(P2y)) and
                            (ball_y <= unsigned(P2y) + to_unsigned(paddle_length, P2y'length)) then
@@ -88,7 +90,7 @@ begin
             end if;
         end if;
     end process;
+    ball_on <= '1' when (to_integer(signed(pixel_x)-signed(ball_x))**2 + to_integer(signed(pixel_y)-signed(ball_y)) <= ball_radius**2) else '0';
     
-    --Need to add logic for actually drawing the ball.
     color <= "111100000000";
 end Behavioral;
