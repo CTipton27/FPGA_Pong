@@ -18,7 +18,6 @@ entity ball is
         P2y      : in STD_LOGIC_VECTOR (9 downto 0);
         pixel_x  : in STD_LOGIC_VECTOR (9 downto 0);
         pixel_y  : in STD_LOGIC_VECTOR (9 downto 0);
-        color    : out STD_LOGIC_VECTOR (11 downto 0);
         ball_on  : out STD_LOGIC
         );
 end ball;
@@ -91,6 +90,4 @@ begin
         end if;
     end process;
     ball_on <= '1' when (to_integer(signed(pixel_x)-signed(ball_x))**2 + to_integer(signed(pixel_y)-signed(ball_y)) <= ball_radius**2) else '0';
-    
-    color <= "111100000000";
 end Behavioral;

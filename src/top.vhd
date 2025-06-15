@@ -5,14 +5,12 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity top is
     Port (
         clk : in STD_LOGIC;
-        rst : in STD_LOGIC; --Will be a switch?
-        p1  : in STD_LOGIC_VECTOR(1 downto 0);
-        p2  : in STD_LOGIC_VECTOR (1 downto 0);
+        rst : in STD_LOGIC;
+        PS2Clk : in STD_LOGIC;
+        PS2Data: in STD_LOGIC;
         Hsync : out STD_LOGIC;
         Vsync : out STD_LOGIC;
-        vgaRed   : out STD_LOGIC_VECTOR(3 downto 0);
-        vgaGreen : out STD_LOGIC_VECTOR(3 downto 0);
-        vgaBlue  : out STD_LOGIC_VECTOR(3 downto 0)
+        color : out STD_LOGIC_VECTOR(11 downto 0)
     );
 end top;
 
@@ -22,13 +20,27 @@ architecture Behavioral of top is
     signal pixel_x  : STD_LOGIC_VECTOR(9 downto 0);
     signal pixel_y  : STD_LOGIC_VECTOR(9 downto 0);
     signal video_on : STD_LOGIC;
+    signal draw_game: STD_LOGIC_VECTOR(1 downto 0);
     signal frame    : STD_LOGIC;
+    signal P1       : STD_LOGIC_VECTOR(1 downto 0);
+    signal P2       : STD_LOGIC_VECTOR(1 downto 0);
+    signal p1y      : STD_LOGIC_VECTOR(9 downto 0);
+    signal p2y      : STD_LOGIC_VECTOR(9 downto 0);
 
     component clock_divider
         Port (
             clk    : in  STD_LOGIC;
             rst    : in  STD_LOGIC;
             oclk   : out STD_LOGIC
+        );
+    end component;
+    
+    component keyboard_controller
+        Port (
+            PS2Data     : in STD_LOGIC;
+            PS2Clk      : in STD_LOGIC;
+            P1          : out STD_LOGIC_VECTOR (1 downto 0); --MSB is HOLD (1 for hold, 0 for move), LSB is DIR(1 for up, 0 for down)
+            P2          : out STD_LOGIC_VECTOR (1 downto 0)  --MSB is HOLD (1 for hold, 0 for move), LSB is DIR(1 for up, 0 for down)
         );
     end component;
 
@@ -44,17 +56,45 @@ architecture Behavioral of top is
             pixel_y   : out STD_LOGIC_VECTOR(9 downto 0)
         );
     end component;
+    
+    component paddle
+        Port(
+            frame    : in STD_LOGIC; --60fps
+            video_on : in STD_LOGIC;
+            p1      : in STD_LOGIC_VECTOR (1 downto 0);
+            P2      : in STD_LOGIC_VECTOR (1 downto 0);
+            pixel_x  : in STD_LOGIC_VECTOR (9 downto 0);
+            pixel_y  : in STD_LOGIC_VECTOR (9 downto 0);
+            paddle_on  : out STD_LOGIC;
+            p1y         : out STD_LOGIC_VECTOR (9 downto 0);
+            p2y         : out STD_LOGIC_VECTOR (9 downto 0)
+        );
+    end component;
+    
+    component ball
+        Port (
+            frame    : in STD_LOGIC; --60fps
+            video_on : in STD_LOGIC;
+            p1y      : in STD_LOGIC_VECTOR (9 downto 0);
+            P2y      : in STD_LOGIC_VECTOR (9 downto 0);
+            pixel_x  : in STD_LOGIC_VECTOR (9 downto 0);
+            pixel_y  : in STD_LOGIC_VECTOR (9 downto 0);
+            ball_on  : out STD_LOGIC
+        );
+    end component;
+    
+    
 begin
     clkdiv_inst : clock_divider
         port map (
-            clk => clk,
-            rst => rst,
+            clk   => clk,
+            rst   => rst,
             oclk  => clk25
         );
 
     vga_inst : vga_controller
         port map (
-            clk     => clk25,
+            clk       => clk25,
             rst       => rst,
             hsync     => Hsync,
             vsync     => Vsync,
@@ -63,9 +103,42 @@ begin
             pixel_x   => pixel_x,
             pixel_y   => pixel_y
         );
-            -- Output blue screen when video is active
-    vgaRed   <= (others => '0');
-    vgaGreen <= (others => '0');
-    vgaBlue  <= "1111" when video_on = '1' else "0000";
+     
+    keyboard_controller_inst : keyboard_controller
+        port map (
+            PS2Data => PS2Data,
+            PS2Clk  => PS2Clk,
+            P1      => P1,
+            P2      => P2   
+        );
+    
+    paddle_inst : paddle
+        port map (
+            frame      => frame,
+            video_on   => video_on,
+            p1         => P1,
+            P2         => P2,
+            pixel_x    => pixel_x,
+            pixel_y    => pixel_y,
+            paddle_on  => draw_game(1),
+            p1y        => p1y,
+            p2y        => p2y
+        );
+    
+    ball_inst : ball
+        port map(
+            frame    => frame,
+            video_on => video_on,
+            p1y      => p1y,
+            P2y      => p2y,
+            pixel_x  => pixel_x,
+            pixel_y  => pixel_y,
+            ball_on  => draw_game(0)
+        );
+        
+        with draw_game select
+            color <= x"FFF" when "10",
+                     x"F00" when "01",
+                     x"000" when others;
     
 end Behavioral;
