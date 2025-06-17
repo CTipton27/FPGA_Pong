@@ -139,6 +139,6 @@ begin
         with draw_game select
             color <= x"FFF" when "10",
                      x"F00" when "01",
-                     x"000" when others;
+                     x"444" when others;
     
 end Behavioral;
