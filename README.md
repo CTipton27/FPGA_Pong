@@ -14,23 +14,18 @@ This project implements a functional Pong game using VHDL and Xilinx Vivado. The
 ## Project Structure
 
 ```plaintext
-pong-vhdl-fpga/
+FPGA_Pong/
 │
 ├── src/                  # VHDL source files
 │   ├── top.vhd           # Top-level module
 │   ├── vga_controller.vhd
 │   ├── paddle.vhd
 │   ├── ball.vhd
-│   └── game_logic.vhd
+│   ├── clock_divider.vhd
+│   └── keyboard_controller.vhd
 │
 ├── constraints/          # Xilinx .xdc constraints file
-│   └── basys3.xdc
-│
-├── sim/                  # Testbenches and simulation outputs
-│   └── tb_top.vhd
-│
-├── docs/                 # Block diagrams, images, or writeups
-│   └── block_diagram.png
+│   └── Basys-3-Master.xdc
 │
 ├── README.md
 └── .gitignore
