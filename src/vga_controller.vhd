@@ -6,7 +6,6 @@ use IEEE.NUMERIC_STD.ALL;
 entity vga_controller is
     Port (
         clk : in STD_LOGIC; --25MHz
-        rst : in STD_LOGIC;
         hsync : out STD_LOGIC;
         vsync : out STD_LOGIC;
         video_on : out STD_LOGIC;
@@ -34,12 +33,9 @@ architecture Behavioral of vga_controller is
     signal V_Count : unsigned (9 downto 0) := (others => '0');
 
 begin
-    process(clk,rst) is
+    process(clk) is
     begin
-        if rst = '1' then --Active High Reset
-            H_Count <= (others => '0');
-            V_Count <= (others => '0');
-        elsif rising_edge(clk) then
+        if rising_edge(clk) then
             if H_Count = H_Total - 1 then --'-1' since we are incrementing from '0'
                 H_Count <= (others => '0') ;
                 if V_Count = V_Total - 1 then

@@ -84,4 +84,5 @@ begin
     P1(0) <= '1' when wHeld else '0'; --remember, wHeld is a bool. if wHeld doesn't equal sHeld, then if wHeld is true, only the w key is pressed, so the paddle should move up
     P2(1) <= '1' when (upHeld = downHeld) else '0';
     P2(0) <= '1' when upHeld else '0';
+    RESET <= '1' when rHeld else '0';
 end Behavioral;

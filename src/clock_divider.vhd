@@ -8,18 +8,15 @@ use IEEE.NUMERIC_STD.ALL;
 entity clock_divider is
     Port (
         clk : in  STD_LOGIC; --100MHz
-        rst : in STD_LOGIC;
         oclk: out STD_LOGIC); --25MHz
 end clock_divider;
 
 architecture Behavioral of clock_divider is
 	signal counter : unsigned (1 downto 0) := "00";
 begin
-	process(clk, rst) is
+	process(clk) is
 	begin
-	   if rst = '1' then
-	       counter <= "00";
-	   elsif rising_edge(clk) then
+	   if rising_edge(clk) then
 	       if counter = 3 then
 	           counter <= "00";
     	   else

@@ -8,6 +8,7 @@ entity paddle is
     Port (
         frame      : in STD_LOGIC; --60fps
         video_on   : in STD_LOGIC;
+        rst        : in STD_LOGIC;
         p1         : in STD_LOGIC_VECTOR (1 downto 0);
         P2         : in STD_LOGIC_VECTOR (1 downto 0);
         pixel_x    : in STD_LOGIC_VECTOR (9 downto 0);
@@ -31,37 +32,42 @@ signal left_paddle_y : unsigned (9 downto 0) := (others => '0');
 signal right_paddle_y : unsigned (9 downto 0) := (others => '0');
 
 begin
-    process(frame) is
+    process(frame,rst) is
     begin
-        if (rising_edge(frame)) then --Checks user inputs, moves paddles accordingly.
-            case p1 is
-                when "10" | "11" =>     null; --neither or both inputs pressed, cancel.
-                when "01" => 
-                    if (left_paddle_y >= to_unsigned(top_border + paddle_speed, left_paddle_y'length)) then
-
-                        left_paddle_y <= left_paddle_y - paddle_speed;
-                    end if;
-                when "00" => 
-                    if (left_paddle_y + to_unsigned(paddle_length, left_paddle_y'length) <= 
-                        to_unsigned(bottom_border - paddle_speed, left_paddle_y'length)) then
-                        left_paddle_y <= left_paddle_y + paddle_speed;
-                    end if;
-                when others => null; --Do nothing, paddles should remain still
-            end case;
-            case p2 is
-                when "10" | "11" =>     null; --neither or both inputs pressed, cancel.
-                when "01" => 
-                if (right_paddle_y >= to_unsigned(top_border + paddle_speed, right_paddle_y'length)) then
+        if (rst = '1') then
+            left_paddle_y  <= to_unsigned(240-paddle_length/2, 10);
+            right_paddle_y <= to_unsigned(240-paddle_length/2, 10);
+        else
+            if (rising_edge(frame)) then --Checks user inputs, moves paddles accordingly.
+                case p1 is
+                    when "10" | "11" =>     null; --neither or both inputs pressed, cancel.
+                    when "01" => 
+                        if (left_paddle_y >= to_unsigned(top_border + paddle_speed, left_paddle_y'length)) then
     
-                    right_paddle_y <= right_paddle_y - paddle_speed;
-                end if;
-                when "00" => 
-                if (right_paddle_y + to_unsigned(paddle_length, right_paddle_y'length) <= 
-                    to_unsigned(bottom_border - paddle_speed, right_paddle_y'length)) then
-                    right_paddle_y <= right_paddle_y + paddle_speed;
-                end if;
-                when others => null; --Do nothing, paddles should remain still
-            end case;
+                            left_paddle_y <= left_paddle_y - paddle_speed;
+                        end if;
+                    when "00" => 
+                        if (left_paddle_y + to_unsigned(paddle_length, left_paddle_y'length) <= 
+                            to_unsigned(bottom_border - paddle_speed, left_paddle_y'length)) then
+                            left_paddle_y <= left_paddle_y + paddle_speed;
+                        end if;
+                    when others => null; --Do nothing, paddles should remain still
+                end case;
+                case p2 is
+                    when "10" | "11" =>     null; --neither or both inputs pressed, cancel.
+                    when "01" => 
+                    if (right_paddle_y >= to_unsigned(top_border + paddle_speed, right_paddle_y'length)) then
+        
+                        right_paddle_y <= right_paddle_y - paddle_speed;
+                    end if;
+                    when "00" => 
+                    if (right_paddle_y + to_unsigned(paddle_length, right_paddle_y'length) <= 
+                        to_unsigned(bottom_border - paddle_speed, right_paddle_y'length)) then
+                        right_paddle_y <= right_paddle_y + paddle_speed;
+                    end if;
+                    when others => null; --Do nothing, paddles should remain still
+                end case;
+            end if;
         end if;
     end process;
     paddle_on <= '1' when (video_on = '1' and (

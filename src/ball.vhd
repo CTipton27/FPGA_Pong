@@ -14,11 +14,14 @@ entity ball is
     Port (
         frame    : in STD_LOGIC; --60fps
         video_on : in STD_LOGIC;
+        rst      : in STD_LOGIC;
         p1y      : in STD_LOGIC_VECTOR (9 downto 0);
         P2y      : in STD_LOGIC_VECTOR (9 downto 0);
         pixel_x  : in STD_LOGIC_VECTOR (9 downto 0);
         pixel_y  : in STD_LOGIC_VECTOR (9 downto 0);
-        ball_on  : out STD_LOGIC
+        ball_on  : out STD_LOGIC;
+        score_p1 : out STD_LOGIC;
+        score_p2 : out STD_LOGIC
         );
 end ball;
 
@@ -41,79 +44,86 @@ signal speed_y: unsigned(2 downto 0)  := "001";
 signal dx     : STD_LOGIC             := '1';   -- X direction (1 for right)
 signal dy     : STD_LOGIC             := '1';   -- Y direction (1 for up)
 signal count  : integer := 0;
+signal missed_ball : STD_LOGIC;
 
 begin
-    process(frame) is
+    process(frame, rst) is
     begin
-        if (rising_edge(frame)) then --Checks for collisions
-            case dx is
-                when '0' => -- Ball is moving left, check left border and P1 paddle
-                    if (ball_x-(ball_radius) <= to_unsigned(left_border, ball_x'length)+paddle_width) then -- Hit left wall
-                        -- Check for collision with Player 1 paddle
-                        if (ball_y + to_unsigned(ball_height, ball_y'length) >= unsigned(p1y)) and
-                           (ball_y <= unsigned(p1y) + to_unsigned(paddle_length, p1y'length)) then
-                            dx <= '1'; -- Bounce right
-                            if speed_x < "101" then -- max speed = 5
-                                count <= count +1;
-                                if count >= 5 then
-                                    speed_x <= speed_x + 1;
-                                    count <= 0;
+        if (rst = '1') then
+            ball_x <= to_unsigned(320,10);
+            ball_y <= to_unsigned(240,10);
+        else
+            if (rising_edge(frame)) then --Checks for collisions
+                case dx is
+                    when '0' => -- Ball is moving left, check left border and P1 paddle
+                        if (ball_x-(ball_radius) <= to_unsigned(left_border, ball_x'length)+paddle_width) then -- Hit left wall
+                            -- Check for collision with Player 1 paddle
+                            if (ball_y + to_unsigned(ball_height, ball_y'length) >= unsigned(p1y)) and
+                               (ball_y <= unsigned(p1y) + to_unsigned(paddle_length, p1y'length)) then
+                                dx <= '1'; -- Bounce right
+                                if speed_x < "101" then -- max speed = 5
+                                    count <= count +1;
+                                    if count >= 5 then
+                                        speed_x <= speed_x + 1;
+                                        count <= 0;
+                                    end if;
+                                    
                                 end if;
-                                
+                            else
+                                missed_ball <= '1';
+                                score_p1 <= '1';
                             end if;
-                        else
-                            -- Ball missed paddle 1 - game over or score for P2
-                            dx <= '1'; -- Temporary bounce if missed paddle
                         end if;
-                    end if;
-                when '1' => -- Ball is moving right, check right border and P2 paddle
-                    if (ball_x+(ball_radius)-1 >= to_unsigned(right_border, ball_x'length)-paddle_width) then -- Hit right wall
-                        -- Check for collision with Player 2 paddle
-                        if (ball_y + to_unsigned(ball_height, ball_y'length) >= unsigned(P2y)) and
-                           (ball_y <= unsigned(P2y) + to_unsigned(paddle_length, P2y'length)) then
-                            dx <= '0'; -- Bounce left
-                            if speed_y < "011" then -- max speed = 3
-                                count <= count + 1;
-                                if count >= 7 then
-                                    speed_y <= speed_y + 1;
-                                end if;
-                            end if;  
-                        else
-                            -- Ball missed paddle 2 - game over or score for P1
-                            dx <= '0'; -- Temporary bounce if missed paddle
+                    when '1' => -- Ball is moving right, check right border and P2 paddle
+                        if (ball_x+(ball_radius)-1 >= to_unsigned(right_border, ball_x'length)-paddle_width) then -- Hit right wall
+                            -- Check for collision with Player 2 paddle
+                            if (ball_y + to_unsigned(ball_height, ball_y'length) >= unsigned(P2y)) and
+                               (ball_y <= unsigned(P2y) + to_unsigned(paddle_length, P2y'length)) then
+                                dx <= '0'; -- Bounce left
+                                if speed_y < "011" then -- max speed = 3
+                                    count <= count + 1;
+                                    if count >= 7 then
+                                        speed_y <= speed_y + 1;
+                                    end if;
+                                end if;  
+                            else
+                                -- Ball missed paddle 2 - game over or score for P1
+                                missed_ball <= '1';
+                                score_p2 <= '1';
+                            end if;
                         end if;
-                    end if;
-
-                when others =>
-                    -- Should not happen with only '0' and '1' for dx
-                    null;
-            end case;
-            -- Bounce vertically
-            if (ball_y - to_unsigned(ball_radius, ball_y'length) <= to_unsigned(top_border, ball_y'length)) then
-                dy <= '1'; -- bounce down
-            elsif (ball_y + to_unsigned(ball_radius, ball_y'length) >= to_unsigned(bottom_border, ball_y'length)) then
-                dy <= '0'; -- bounce up
-            end if;
-            
-            
-            -- Calculate next ball position
-            if (dx = '1') then -- Moving right
-                ball_x <= ball_x + speed_x;
-            else -- Moving left
-                ball_x <= ball_x - speed_x;
-            end if;
-
-            if (dy = '1') then -- Moving down
-                ball_y <= ball_y + speed_y;
-            else -- Moving up
-                ball_y <= ball_y - speed_y;
+    
+                    when others =>
+                        -- Should not happen with only '0' and '1' for dx
+                        null;
+                end case;
+                -- Bounce vertically
+                if (ball_y - to_unsigned(ball_radius, ball_y'length) <= to_unsigned(top_border, ball_y'length)) then
+                    dy <= '1'; -- bounce down
+                elsif (ball_y + to_unsigned(ball_radius, ball_y'length) >= to_unsigned(bottom_border, ball_y'length)) then
+                    dy <= '0'; -- bounce up
+                end if;
+                
+                
+                -- Calculate next ball position
+                if (dx = '1') then -- Moving right
+                    ball_x <= ball_x + speed_x;
+                else -- Moving left
+                    ball_x <= ball_x - speed_x;
+                end if;
+    
+                if (dy = '1') then -- Moving down
+                    ball_y <= ball_y + speed_y;
+                else -- Moving up
+                    ball_y <= ball_y - speed_y;
+                end if;
             end if;
         end if;
     end process;
+    
     ball_on <= '1' when (video_on = '1' and (
-    (to_integer(unsigned(pixel_x)) - to_integer(ball_x))**2 +
-    (to_integer(unsigned(pixel_y)) - to_integer(ball_y))**2
-    <= ball_radius**2
-)) else '0';
+        (to_integer(unsigned(pixel_x)) - to_integer(ball_x))**2 +
+        (to_integer(unsigned(pixel_y)) - to_integer(ball_y))**2
+        <= ball_radius**2 )) else '0';
 
 end Behavioral;
