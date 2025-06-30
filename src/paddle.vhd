@@ -28,8 +28,8 @@ constant top_border    : integer := 9;
 constant bottom_border : integer := 469;
 constant paddle_speed  : integer := 4;
 
-signal left_paddle_y : unsigned (9 downto 0) := (others => '0');
-signal right_paddle_y : unsigned (9 downto 0) := (others => '0');
+signal left_paddle_y : unsigned (9 downto 0) := to_unsigned(240-paddle_length/2, 10);
+signal right_paddle_y : unsigned (9 downto 0) := to_unsigned(240-paddle_length/2, 10);
 
 begin
     process(frame,rst) is
