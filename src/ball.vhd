@@ -112,8 +112,8 @@ begin
                 case dx is
                     when '0' =>  -- moving left
                         if (ball_x - ball_radius <= to_unsigned(left_border, 10) + paddle_width) then
-                            if (ball_y + to_unsigned(ball_height, 10) >= unsigned(p1y)) and
-                               (ball_y <= unsigned(p1y) + to_unsigned(paddle_length, 10)) then
+                            if (ball_y + to_unsigned(ball_radius, 10) >= unsigned(p1y)) and
+                               (ball_y - to_unsigned(ball_radius, 10) <= unsigned(p1y) + to_unsigned(paddle_length, 10)) then
                                 dx <= '1'; -- bounce right
 
                                 -- Speed up
@@ -133,8 +133,8 @@ begin
 
                     when '1' =>  -- moving right
                         if (ball_x + ball_radius >= to_unsigned(right_border, 10) - paddle_width) then
-                            if (ball_y + to_unsigned(ball_height, 10) >= unsigned(P2y)) and
-                               (ball_y <= unsigned(P2y) + to_unsigned(paddle_length, 10)) then
+                            if (ball_y + to_unsigned(ball_radius, 10) >= unsigned(p2y)) and
+                               (ball_y - to_unsigned(ball_radius, 10) <= unsigned(p2y) + to_unsigned(paddle_length, 10)) then
                                 dx <= '0'; -- bounce left
 
                                 -- Speed up

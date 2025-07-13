@@ -22,7 +22,8 @@ architecture Behavioral of top is
     signal pixel_x  : STD_LOGIC_VECTOR(9 downto 0);
     signal pixel_y  : STD_LOGIC_VECTOR(9 downto 0);
     signal video_on : STD_LOGIC;
-    signal draw_game: STD_LOGIC_VECTOR(1 downto 0);
+    signal ball_on  : STD_LOGIC;
+    signal paddle_on: STD_LOGIC;
     signal frame    : STD_LOGIC;
     signal P1       : STD_LOGIC_VECTOR(1 downto 0);
     signal P2       : STD_LOGIC_VECTOR(1 downto 0);
@@ -138,7 +139,7 @@ begin
             P2         => P2,
             pixel_x    => pixel_x,
             pixel_y    => pixel_y,
-            paddle_on  => draw_game(1),
+            paddle_on  => paddle_on,
             p1y        => p1y,
             p2y        => p2y
         );
@@ -152,7 +153,7 @@ begin
             P2y      => p2y,
             pixel_x  => pixel_x,
             pixel_y  => pixel_y,
-            ball_on  => draw_game(0),
+            ball_on  => ball_on,
             score_p1 => score_p1,
             score_p2 => score_p2
         );
@@ -167,9 +168,19 @@ begin
             seg      => seg
         );
         
-        with draw_game select
-            color <= x"FFF" when "10",
-                     x"F00" when "01",
-                     x"444" when others;
+        process(video_on, ball_on, paddle_on)
+        begin
+            if (video_on = '1') then
+                if (ball_on = paddle_on) then
+                    color <= x"FFF";
+                elsif (ball_on = '1') then
+                    color <= x"F00";
+                elsif (paddle_on = '1') then
+                    color <= x"00F";
+                end if;
+            else color <= x"000";
+            end if;
+            
+        end process;
     
 end Behavioral;
